@@ -80,12 +80,13 @@ DevSync addresses these issues by creating a **data-driven bridge**:
 
 ## 7. 🛠️ Technology Stack
 
-| Component         | Technology                                  |
-| :---------------- | :------------------------------------------ |
-| **Frontend**      | Flutter (Dart)                              |
-| **Backend**       | Firebase (Firestore, Cloud Functions, Auth) |
-| **AI/LLM**        | OpenAI API (GPT Models)                     |
-| **External APIs** | GitHub REST API                             |
+| Component            | Technology                                  |
+| :------------------- | :------------------------------------------ |
+| **Frontend**         | Flutter (Dart)                              |
+| **State Management** | GetX                                        |
+| **Backend**          | Firebase (Firestore, Cloud Functions, Auth) |
+| **AI/LLM**           | OpenAI API (GPT Models)                     |
+| **External APIs**    | GitHub REST API                             |
 
 ---
 
