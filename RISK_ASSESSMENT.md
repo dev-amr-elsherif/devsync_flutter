@@ -2,7 +2,6 @@
 
 **Project Name:** DevSync (AI-Powered Developer Matching Platform)  
 **Lead Developer:** Amr Fathy Mokhtar Elsherif  
-**Date:** February 2026  
 **Status:** MVP Phase
 
 ---
@@ -89,3 +88,4 @@ The risk status will be reviewed during every sprint meeting.
 ---
 
 **Submitted by:** DevSync Team
+**Date:** 20 February 2026
