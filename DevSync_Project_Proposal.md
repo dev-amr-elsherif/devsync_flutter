@@ -95,5 +95,5 @@ DevSync aspires to become the standard for **skill-first professional networking
 
 ---
 
-**Submitted by:** [Your Name/Team Name]  
-**Date:** February 2026
+**Submitted by:** DevSync Team  
+**Date:** 20 February 2026
