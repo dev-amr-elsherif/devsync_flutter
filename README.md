@@ -74,3 +74,10 @@ DevSync is built with scalability and security in mind:
 ---
 
 > "DevSync aspires to become the standard for skill-first professional networking by replacing subjective resumes with objective code analysis and AI-driven insights."
+
+---
+
+> [!TIP]
+> **Quick Navigation:**
+> &nbsp; [📅 Project Timeline](TIMELINE.md) &nbsp; | &nbsp; [📝 Tasks & Roadmap](TASKS.md) &nbsp; | &nbsp; [📈 KPIs & Metrics](KPIs_METRICS.md)
+---
