@@ -1,83 +1,63 @@
-# 🚀 DevSync: AI-Powered Developer Matching Platform
+# DevSync: Secure AI Project Collaborator
+**Date: April 12, 2026**
 
-<div align="center">
-  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter" />
-  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=white" alt="Firebase" />
-  <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI" />
-  <img src="https://img.shields.io/badge/GitHub_API-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub API" />
-</div>
+## 🌟 Overview
+DevSync is a premium, AI-powered platform designed for developers to find high-impact collaborators for open-source and private projects. By leveraging **Google Gemini AI**, the platform moves beyond simple keyword Matching to analyze developer expertise through **GitHub Activity** and skill sets.
 
-## 📖 About The Project
+## 🚀 Recent Architectural Updates
+- **Role-First Onboarding**: Complete UI overhaul replacing generic login screens with a luxurious, glassmorphism role-selector (Developer vs Project Manager).
+- **Native OAuth Flow**: Removed Firebase UI in favor of native Google Sign-In and GitHub OAuth token interception via Chrome Custom Tabs.
+- **Dedicated Python Backend (FastAPI)**: Successfully spun off heavy processing to a local Python server (`localhost:8000`).
+- **Instant Algorithmic GitHub Profiling**: Replaced slow GenAI constraints with a blazing-fast Python algorithmic engine that instantly reads GitHub metadata to dictate Seniority, compute Top Programming Languages, and construct automated professional Bios in milliseconds.
 
-**DevSync** is an innovative cross-platform mobile application developed using Flutter. It aims to revolutionize how Project Managers (PMs) and Developers connect by utilizing an AI-driven matching ecosystem.
+## 🤖 Core AI Implementation (Prompt Engineering)
+The platform features a sophisticated AI-driven discovery engine:
+- **Expertise Matching**: Uses a refined Gemini-1.5-flash prompt that evaluates a developer's real-world expertise by analyzing their **GitHub Repository activity**, top languages, and public contributions.
+- **Feedback-Driven Optimization**: Implements a dedicated **Feedback Loop** where users can rate the accuracy of AI matches. This data is logged to evaluate and optimize prompt performance over time.
+- **Project Proposal Architect**: An AI assistant that helps owners structure their projects into professional JSON-based proposals.
 
-Unlike traditional project management tools, DevSync prioritizes verifiable technical competence by analyzing real-world public GitHub activity, ensuring that project requirements meet the most qualified talent.
+## 🔐 Technical Architecture & Security
+- **Authentication**: Implements **Firebase UI Auth** for a multi-platform, secure sign-in experience supporting:
+  - **Google OAuth**: One-tap secure login.
+  - **Email/Password**: Traditional secure authentication.
+- **Security model**: Adheres to the Android software stack security model, utilizing `proguard` for **Code Obfuscation** and strict **Runtime Permission Management** via `permission_handler`.
+- **FCM Integration**: Leverages **Firebase Cloud Messaging** (FCM) to deliver real-time collaboration alerts and project updates directly to user devices.
 
-### ⚠️ The Problem
+## 🎭 Advanced UI & UX
+- **Glassmorphism Design**: A modern, premium aesthetic using soft gradients, translucent cards, and high-fidelity blur effects.
+- **Advanced Animations**: 
+  - **Implicit Animations**: Smooth transitions between app states.
+  - **Tween & Transition Widgets**: Custom `TweenAnimationBuilder` implementations for glowing network effects and fluid content entry (Advanced Networking Experience).
+  - Built with `flutter_animate` for high-performance micro-interactions.
 
-- **Verification Gap:** PMs struggle to evaluate the true technical proficiency of developers beyond self-declared CVs.
-- **Discovery Friction:** Talented developers often go unnoticed if they lack "keyword-optimized" profiles.
-- **Efficiency Loss:** Manual searching and vetting lead to wasted time and mismatched expectations.
+## 📦 Deployment & Flavors
+The project is architected for production-grade deployment:
+- **Build Flavors**: Configured with multiple `productFlavors` in Gradle:
+  - `free`: Basic matching and project limits.
+  - `pro`: Unlimited AI matching and advanced discovery features.
+- **Code Protection**: Uses **R8/ProGuard obfuscation** to protect intellectual property before being released as an **Android App Bundle (.aab)**.
 
----
+## 📂 Project Structure
+```text
+lib/
+├── app/          # Routes (GetX) and Flavor configs
+├── core/         # Premium Theme, Constants, Strings
+├── data/
+│   ├── models/   # Project, User, and Invitation models
+│   ├── providers/# Firebase Firestore & Auth providers
+│   └── services/ # AI (Gemini), GitHub, FCM, and Analytics
+├── presentation/
+│   ├── modules/  # Feature-based architecture (Auth, Dashboard, Projects)
+│   └── widgets/  # Custom UI (GlassCard, Advanced Animations)
+└── main.dart     # Multi-platform entry point
+```
 
-## ⭐ Core Features
-
-- **AI Project Architect:** Chatbot-based project setup that simplifies project definition for PMs through natural language processing.
-- **GitHub Scraper & Analyzer:** Objective skill evaluation via public data using the GitHub REST API to analyze public commits, languages used, and contribution patterns.
-- **Smart Matching Recommendation Engine:** Proprietary logic and AI algorithm that ranks developers based on their actual coding history relative to project needs.
-- **Secure Auth & Invitation Workflow:** Integration with GitHub and Google OAuth, along with a controlled system for professional outreach.
-
----
-
-## 🛠️ Technology Stack
-
-| Component            | Technology                                  |
-| :------------------- | :------------------------------------------ |
-| **Frontend**         | Flutter (Dart)                              |
-| **State Management** | GetX                                        |
-| **Backend**          | Firebase (Firestore, Cloud Functions, Auth) |
-| **AI/LLM**           | OpenAI API (GPT Models)                     |
-| **External APIs**    | GitHub REST API                             |
-
----
-
-## 🏗️ Architecture & Security
-
-DevSync is built with scalability and security in mind:
-
-- **Architecture:** Utilizes Clean Architecture with Feature-Based Vertical Slicing.
-- **Token Management:** Implementation of `flutter_secure_storage` for encrypted GitHub OAuth token management, adhering to the Android Keystore system.
-- **API Rate Mitigation:** Implements Firestore Caching to store retrieved GitHub profiles for 24 hours, mitigating GitHub API rate limiting risks.
-- **Data Privacy:** Enforces strict Firebase Security Rules to protect user Personally Identifiable Information (PII).
-- **Environment Security:** Proper handling of `.env` configurations to secure OpenAI API keys from version control.
-
----
-
-## 📊 Key Performance Targets (MVP)
-
-- **Time-to-Match:** < 2 Minutes (From project creation to invite list).
-- **Skill Match Accuracy:** ≥ 80% alignment between GitHub history and project needs.
-- **System Uptime:** ≥ 99.9%.
-
----
-
-## 👨‍💻 Team
-
-- **Team Leader:** Amr Fathy Mokhtar Elsherif
-- **Team Members:**
-  - Verena Samir Adly
-  - Momen Hassan Mohamed
-  - Hala Mahmoud Abdelaziz
-  - Yosef Salah Abdelhamid
+## 🛠 Tech Stack
+- **Framework**: Flutter (Dart)
+- **Local Backend API**: Python 3.12+ (FastAPI, Uvicorn, Pydantic)
+- **Cloud Backend**: Firebase (Auth, Firestore, Messaging, Analytics, Remote Config)
+- **Analytics**: Real-time event tracking and role-selection logging.
+- **State Management**: GetX (Performance & Navigation)
 
 ---
-
-> "DevSync aspires to become the standard for skill-first professional networking by replacing subjective resumes with objective code analysis and AI-driven insights."
-
----
-
-> [!TIP]
-> **Quick Navigation:**
-> &nbsp; [📅 Project Timeline](TIMELINE.md) &nbsp; | &nbsp; [📝 Tasks & Roadmap](TASKS.md) &nbsp; | &nbsp; [📈 KPIs & Metrics](KPIs_METRICS.md)
----
+*Developed with focus on Android Software Stack security and modern AI architecture.*

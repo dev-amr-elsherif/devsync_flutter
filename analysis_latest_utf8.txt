@@ -1,0 +1,23 @@
+﻿Analyzing sandbox...                                            
+
+   info - The constant name 'INITIAL' isn't a lowerCamelCase identifier - lib\app\routes\app_pages.dart:18:16 - constant_identifier_names
+   info - Don't invoke 'print' in production code - lib\data\services\gemini_service.dart:47:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\services\gemini_service.dart:85:5 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\ai_chat\ai_chat_view.dart:21:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\ai_chat\ai_chat_view.dart:89:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\ai_chat\ai_chat_view.dart:89:78 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\presentation\modules\auth\auth_controller.dart:42:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\modules\auth\auth_controller.dart:49:9 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\dev_profile\profile_view.dart:46:56 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\presentation\modules\dev_projects\dev_invitations_controller.dart:48:9 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\dev_projects\project_details_view.dart:66:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\dev_projects\project_details_view.dart:82:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\dev_projects\project_details_view.dart:119:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\dev_projects\project_details_view.dart:121:54 - deprecated_member_use
+  error - The name 'AuthController' isn't a type, so it can't be used as a type argument - lib\presentation\modules\main_shell\main_shell_view.dart:23:45 - non_type_as_type_argument
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\main_shell\main_shell_view.dart:42:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\main_shell\main_shell_view.dart:45:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\main_shell\main_shell_view.dart:89:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\modules\owner_profile\owner_profile_view.dart:46:56 - deprecated_member_use
+
+

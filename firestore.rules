@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: Is user authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Helper: Is this the user's own document
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    // ── Developers ───────────────────────────────────────────────────
+    match /developers/{userId} {
+      allow read: if isAuth(); 
+      allow write: if isOwner(userId);
+    }
+
+    // ── Owners ────────────────────────────────────────────────────────
+    match /owners/{userId} {
+      allow read: if isAuth();
+      allow write: if isOwner(userId);
+    }
+
+    // ── Legacy Users (Migration) ──────────────────────────────────────
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ── Projects ─────────────────────────────────────────────────────
+    match /projects/{projectId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isAuth() && (
+        resource.data.ownerId == request.auth.uid ||
+        // Allow updating status to 'ready_for_review' via trigger/app logic if sender is involved?
+        // Actually normally only owner updates project status.
+        resource.data.ownerId == request.auth.uid
+      );
+    }
+
+    // ── Invitations ──────────────────────────────────────────────────
+    match /invitations/{invitationId} {
+      allow read: if isAuth(); // For matching and browsing
+      allow create: if isAuth();
+      allow update: if isAuth() && (
+        request.auth.uid == resource.data.senderId || 
+        request.auth.uid == resource.data.receiverId
+      );
+      allow delete: if isAuth() && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.receiverId == request.auth.uid
+      );
+    }
+
+    // ── Reviews ──────────────────────────────────────────────────────
+    match /reviews/{reviewId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    // ── Notifications (Legacy/Specific) ──────────────────────────────
+    match /notifications/{notifId} {
+      allow read: if isAuth();
+      allow write: if false; 
+    }
+  }
+}
