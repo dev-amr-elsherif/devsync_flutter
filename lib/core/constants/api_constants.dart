@@ -1,14 +1,16 @@
-// ─── API Constants ───────────────────────────────────────────────────────────
+import 'package:get/get.dart';
+
+// ─── API Constants ─────────────────────────────────────────────────────────
 class ApiConstants {
   ApiConstants._();
 
-  // ── GitHub OAuth ───────────────────────────────────────────────
-  static const String githubClientId     = 'Ov23liGJL09c0Oqc2Tbk';
-  static const String githubCallbackUrl  = 'https://dev--sync.firebaseapp.com/__/auth/handler';
+  // ── GitHub OAuth ──────────────────────────────────────────────
+  static const String githubClientId       = 'Ov23liGJL09c0Oqc2Tbk';
+  static const String githubCallbackUrl    = 'https://dev--sync.firebaseapp.com/__/auth/handler';
   static const String githubCallbackScheme = 'devsync';
-  static const String githubAuthorizeUrl = 'https://github.com/login/oauth/authorize';
-  static const String githubTokenUrl     = 'https://github.com/login/oauth/access_token';
-  static const String githubApiBase      = 'https://api.github.com';
+  static const String githubAuthorizeUrl   = 'https://github.com/login/oauth/authorize';
+  static const String githubTokenUrl       = 'https://github.com/login/oauth/access_token';
+  static const String githubApiBase        = 'https://api.github.com';
 
   // ── Firebase Cloud Function names ─────────────────────────────
   static const String cfExchangeGitHubToken = 'exchangeGitHubToken';
@@ -17,19 +19,20 @@ class ApiConstants {
   static const String vapidKey =
       'BP-7kNYGUvd0IYXZHlplBZevMv4ro5HVFrW75KOPgpw2V2QMwjLLaSX8NfnwIx7GCigMkh8V4JnaeFNibpwfOEg';
 
-  // ── Remote Config key names (values fetched at runtime) ────────
+  // ── Remote Config key names ────────────────────────────────────
   static const String rcGithubClientSecret = 'github_client_secret';
   static const String rcGeminiApiKey       = 'gemini_api_key';
-  
-  // ── Gemini Key (Deprecated) ───────────────────────────────────
-  static const String geminiApiKey         = 'YOUR_GEMINI_API_KEY';
+  static const String rcGroqApiKey         = 'groq_api_key'; // ✅ NEW
 
-  // ── Groq Key (Active) ──────────────────────────────────────────
-  static const String groqApiKey           = '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';
-  static const String groqBaseUrl          = 'https://api.groq.com/openai/v1';
-  static const String groqModel            = 'llama-3.3-70b-versatile';
+  // ── Groq (Active AI) ──────────────────────────────────────────
+  static const String groqBaseUrl = 'https://api.groq.com/openai/v1';
+  static const String groqModel   = 'llama-3.3-70b-versatile';
 
-  // ── Hive box names (Legacy/Unused) ─────────────────────────────
+  // ── Python Backend ────────────────────────────────────────────
+  static String get pythonBackendUrl => // ✅ NEW
+      GetPlatform.isAndroid ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
+
+  // ── Hive box names (Legacy/Unused) ────────────────────────────
   static const String hiveMatchesBox  = 'matches_box';
   static const String hiveProjectsBox = 'projects_box';
   static const String hiveUserBox     = 'user_box';

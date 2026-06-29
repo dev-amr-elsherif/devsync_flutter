@@ -5,19 +5,17 @@ import '../../../../data/models/user_model.dart';
 import '../../../../data/models/project_model.dart';
 import '../../../../data/models/invitation_model.dart';
 import '../../../../data/providers/firebase_provider.dart';
-import '../../../../data/services/gemini_service.dart';
+import '../../../../data/services/groq_service.dart'; // ✅ FIX
 import '../../../../data/services/analytics_service.dart';
 import '../../../../data/services/github_service.dart';
 import '../auth/auth_controller.dart';
 
 class DeveloperController extends GetxController {
-  // المحركات الأساسية لجلب البيانات وحساب المطابقة
   final FirebaseProvider _firebaseProvider = Get.find<FirebaseProvider>();
-  final GeminiService _geminiService = Get.find<GeminiService>();
+  final GroqService _groqService = Get.find<GroqService>(); // ✅ FIX
   final AnalyticsService _analytics = Get.find<AnalyticsService>();
   final GithubService _githubService = GithubService();
 
-  // ─── State ────────────────────────────────────────────────────────
   final RxList<ProjectModel> projects = <ProjectModel>[].obs;
   final RxList<Map<String, dynamic>> matches = <Map<String, dynamic>>[].obs;
   final RxList<InvitationModel> pendingInvitations = <InvitationModel>[].obs;
@@ -45,23 +43,24 @@ class DeveloperController extends GetxController {
   void _listenToInvitations() {
     if (_developer == null) return;
     _invitationSub?.cancel();
-    _invitationSub = _firebaseProvider.streamInvitations(_developer!.uid).listen((data) {
-      // فقط الدعوات المعلقة التي أرسلها المدير للمطور
-      pendingInvitations.assignAll(data.where((i) => i.status == 'pending').toList());
-    });
+    _invitationSub = _firebaseProvider
+        .streamInvitations(_developer!.uid)
+        .listen((data) {
+          // ✅ FIX: compare with InvitationStatus enum
+          pendingInvitations.assignAll(
+            data.where((i) => i.status == InvitationStatus.pending).toList(),
+          );
+        });
   }
 
-  // ─── Initial Load ─────────────────────────────────────────────────
   Future<void> loadInitialData() async {
     try {
       isLoading.value = true;
       hasError.value = false;
       projects.clear();
       matches.clear();
-      
-      // Fetching projects
+
       final snapshot = await _firebaseProvider.getProjects();
-      // فلتر فقط المشاريع النشطة — لا تظهر المشاريع المنتهية/الملغاة
       projects.assignAll(snapshot.where((p) => p.status == 'active').toList());
 
       if (_developer != null && projects.isNotEmpty) {
@@ -75,28 +74,28 @@ class DeveloperController extends GetxController {
     }
   }
 
-  // تشغيل الذكاء الاصطناعي لمطابقة المطور مع المشاريع المتوفرة مع مراعاة نشاط GitHub
   Future<void> _runAIMatching() async {
     if (_developer == null) return;
     await _analytics.logAIMatchRequested();
 
-    final githubActivity = await _githubService.getUserActivity(_developer!.name.replaceAll(' ', ''));
+    final githubActivity = await _githubService.getUserActivity(
+      _developer!.name.replaceAll(' ', ''),
+    );
 
     final List<Map<String, dynamic>> results = [];
     for (var project in projects) {
-      final score = await _geminiService.calculateMatch(
+      final score = await _groqService.calculateMatch(
+        // ✅ FIX
         _developer!.skills.join(', '),
         project.description,
         githubActivity: githubActivity,
       );
-      results.add({
-        'project': project,
-        'score': score,
-      });
+      results.add({'project': project, 'score': score});
     }
-    
-    // Sort by score descending
-    results.sort((a, b) => (b['score'] as double).compareTo(a['score'] as double));
+
+    results.sort(
+      (a, b) => (b['score'] as double).compareTo(a['score'] as double),
+    );
     matches.assignAll(results);
   }
 
@@ -104,7 +103,7 @@ class DeveloperController extends GetxController {
     try {
       await _firebaseProvider.updateInvitationStatus(invitation.id, 'accepted');
       Get.snackbar(
-        'Success! 🚀', 
+        'Success! 🚀',
         'Project "${invitation.projectTitle}" accepted. Check your Projects tab.',
         backgroundColor: Colors.green.withValues(alpha: 0.1),
         colorText: Colors.green,
@@ -117,7 +116,10 @@ class DeveloperController extends GetxController {
   Future<void> declineInvitation(InvitationModel invitation) async {
     try {
       await _firebaseProvider.updateInvitationStatus(invitation.id, 'declined');
-      Get.snackbar('Declined', 'Invitation for "${invitation.projectTitle}" was declined.');
+      Get.snackbar(
+        'Declined',
+        'Invitation for "${invitation.projectTitle}" was declined.',
+      );
     } catch (e) {
       Get.snackbar('Error', 'Failed to decline invitation');
     }

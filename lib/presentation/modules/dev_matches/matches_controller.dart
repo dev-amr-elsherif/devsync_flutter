@@ -5,19 +5,15 @@ import '../../../../data/models/project_model.dart';
 import '../../../../data/models/invitation_model.dart';
 import '../../../../data/models/user_model.dart';
 import '../../../../data/providers/firebase_provider.dart';
-import '../../../../data/services/gemini_service.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../auth/auth_controller.dart';
 
 class MatchesController extends GetxController {
   final FirebaseProvider _firebaseProvider = Get.find<FirebaseProvider>();
-  final GeminiService _geminiService = Get.find<GeminiService>();
 
-  // ─── State ────────────────────────────────────────────────────────
   final RxList<Map<String, dynamic>> projectMatches = <Map<String, dynamic>>[].obs;
   final RxBool isLoading = true.obs;
   final RxBool isSendingRequest = false.obs;
-
-  /// Set of project IDs the developer already sent a request to
   final RxSet<String> sentRequestIds = <String>{}.obs;
 
   UserModel? _developer;
@@ -35,7 +31,6 @@ class MatchesController extends GetxController {
       isLoading.value = true;
       projectMatches.clear();
 
-      // جلب المشاريع + الطلبات المرسلة + الـ invitations المقبولة — كلها بالتوازي
       final results = await Future.wait([
         _firebaseProvider.getProjects(),
         _firebaseProvider.getSentJoinRequests(_developer!.uid),
@@ -46,20 +41,15 @@ class MatchesController extends GetxController {
       final sentRequests = results[1] as List<InvitationModel>;
       final acceptedInvites = results[2] as List<InvitationModel>;
 
-      // تتبع الطلبات المرسلة + المشاريع المقبول فيها بالفعل
       sentRequestIds.assignAll(sentRequests.map((r) => r.projectId).toSet());
-      final acceptedProjectIds = acceptedInvites.map((i) => i.projectId).toSet();
+      final acceptedProjectIds =
+          acceptedInvites.map((i) => i.projectId).toSet();
 
-      // فلتر:
-      // 1. فقط المشاريع النشطة (active)
-      // 2. ليست للمطور نفسه
-      // 3. المطور مش مقبول فيها بالفعل
       final filteredProjects = allProjects.where((p) =>
-        p.status == 'active' &&
-        p.ownerId != _developer!.uid &&
-        !acceptedProjectIds.contains(p.id) &&
-        !sentRequestIds.contains(p.id)
-      ).toList();
+          p.status == 'active' &&
+          p.ownerId != _developer!.uid &&
+          !acceptedProjectIds.contains(p.id) &&
+          !sentRequestIds.contains(p.id)).toList();
 
       final devSkills = {
         ...(_developer!.topAiSkills ?? []),
@@ -73,10 +63,8 @@ class MatchesController extends GetxController {
 
       try {
         final dio = dio_lib.Dio();
-        final baseUrl = GetPlatform.isAndroid ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
-        
         final response = await dio.post(
-          '$baseUrl/matches/calculate',
+          '${ApiConstants.pythonBackendUrl}/matches/calculate',
           data: {
             'devSkills': devSkills,
             'devSeniority': _developer!.githubSeniority ?? 'Junior',
@@ -91,28 +79,24 @@ class MatchesController extends GetxController {
         if (response.statusCode == 200) {
           final List<dynamic> matches = response.data['matches'];
           final Map<String, double> scoresMap = {
-            for (var m in matches) m['projectId']: (m['score'] as num).toDouble()
+            for (var m in matches)
+              m['projectId'] as String: (m['score'] as num).toDouble()
           };
 
           final List<Map<String, dynamic>> scored = filteredProjects.map((p) {
-            return {
-              'project': p,
-              'score': scoresMap[p.id] ?? 10.0,
-            };
+            return {'project': p, 'score': scoresMap[p.id] ?? 10.0};
           }).toList();
 
-          scored.sort((a, b) => ((b['score'] as num).toDouble()).compareTo((a['score'] as num).toDouble()));
+          scored.sort((a, b) => ((b['score'] as num).toDouble())
+              .compareTo((a['score'] as num).toDouble()));
           projectMatches.assignAll(scored);
         } else {
-          throw Exception('Backend Matcher failed with code ${response.statusCode}');
+          throw Exception('Backend Matcher failed: ${response.statusCode}');
         }
       } catch (e) {
-        debugPrint('Error calling Match Engine: $e');
-        // Fallback to basic local matching if backend is down
-        final List<Map<String, dynamic>> fallbackScored = filteredProjects.map((p) {
-          return {'project': p, 'score': 10.0};
-        }).toList();
-        projectMatches.assignAll(fallbackScored);
+        debugPrint('Match Engine error: $e');
+        projectMatches.assignAll(
+            filteredProjects.map((p) => {'project': p, 'score': 10.0}).toList());
       }
     } catch (e) {
       Get.snackbar('Error', 'Failed to load matches: $e');
@@ -124,7 +108,8 @@ class MatchesController extends GetxController {
   Future<void> sendJoinRequest(ProjectModel project) async {
     if (_developer == null || isSendingRequest.value) return;
     if (sentRequestIds.contains(project.id)) {
-      Get.snackbar('Already Requested', 'You already sent a request for this project.');
+      Get.snackbar('Already Requested',
+          'You already sent a request for this project.');
       return;
     }
 
@@ -141,7 +126,7 @@ class MatchesController extends GetxController {
         receiverPhotoUrl: project.ownerPhotoUrl,
         projectId: project.id,
         projectTitle: project.title,
-        status: 'join_request',
+        status: InvitationStatus.joinRequest, // ✅ FIX: use enum
         timestamp: DateTime.now(),
       );
 
@@ -150,7 +135,7 @@ class MatchesController extends GetxController {
 
       Get.snackbar(
         'Request Sent! 🚀',
-        'Your join request for "${project.title}" was sent to the project owner.',
+        'Your join request for "${project.title}" was sent.',
         backgroundColor: const Color(0xFF00C896).withValues(alpha: 0.15),
         colorText: const Color(0xFF00C896),
         duration: const Duration(seconds: 4),

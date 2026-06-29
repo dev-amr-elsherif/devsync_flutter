@@ -18,7 +18,9 @@ class ProjectsView extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          Container(decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient)),
+          Container(
+              decoration: const BoxDecoration(
+                  gradient: AppTheme.backgroundGradient)),
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,11 +41,13 @@ class ProjectsView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('My Engagements', style: AppTheme.headlineLarge.copyWith(fontSize: 28)),
+          Text('My Engagements',
+              style: AppTheme.headlineLarge.copyWith(fontSize: 28)),
           const SizedBox(height: 6),
           Text(
             'Keep track of your active projects and progress.',
-            style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondary, fontSize: 12),
+            style: AppTheme.bodyMedium
+                .copyWith(color: AppTheme.textSecondary, fontSize: 12),
           ),
           const SizedBox(height: 16),
           const Divider(color: Colors.white10),
@@ -54,13 +58,17 @@ class ProjectsView extends StatelessWidget {
 
   Widget _buildBody(DevInvitationsController controller) {
     return Obx(() {
-      if (controller.isLoading.value && controller.invitations.isEmpty && controller.myJoinRequests.isEmpty) {
-        return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+      if (controller.isLoading.value &&
+          controller.invitations.isEmpty &&
+          controller.myJoinRequests.isEmpty) {
+        return const Center(
+            child: CircularProgressIndicator(color: AppTheme.primary));
       }
 
       final filteredInvites = controller.filteredInvitations;
       final filteredReqs = controller.filteredRequests;
-      final hasData = filteredInvites.isNotEmpty || filteredReqs.isNotEmpty;
+      final hasData =
+          filteredInvites.isNotEmpty || filteredReqs.isNotEmpty;
 
       return CustomScrollView(
         physics: const BouncingScrollPhysics(),
@@ -73,7 +81,8 @@ class ProjectsView extends StatelessWidget {
               child: AppEmptyState(
                 icon: Icons.filter_list_off_rounded,
                 title: 'No Matching Projects',
-                subtitle: 'No projects found for the selected filter. Try switching to "All".',
+                subtitle:
+                    'No projects found for the selected filter. Try switching to "All".',
               ),
             )
           else ...[
@@ -81,7 +90,10 @@ class ProjectsView extends StatelessWidget {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
                 sliver: SliverToBoxAdapter(
-                  child: _SectionHeader(title: 'Invitations', icon: Icons.mail_rounded, color: AppTheme.primary),
+                  child: _SectionHeader(
+                      title: 'Invitations',
+                      icon: Icons.mail_rounded,
+                      color: AppTheme.primary),
                 ),
               ),
               SliverPadding(
@@ -89,11 +101,10 @@ class ProjectsView extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => _TrackingCard(
-                      invitation: filteredInvites[index], 
-                      isInvitation: true, 
-                      index: index, 
-                      controller: controller
-                    ),
+                        invitation: filteredInvites[index],
+                        isInvitation: true,
+                        index: index,
+                        controller: controller),
                     childCount: filteredInvites.length,
                   ),
                 ),
@@ -103,7 +114,10 @@ class ProjectsView extends StatelessWidget {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
                 sliver: SliverToBoxAdapter(
-                  child: _SectionHeader(title: 'My Join Requests', icon: Icons.send_rounded, color: AppTheme.secondary),
+                  child: _SectionHeader(
+                      title: 'My Join Requests',
+                      icon: Icons.send_rounded,
+                      color: AppTheme.secondary),
                 ),
               ),
               SliverPadding(
@@ -111,11 +125,10 @@ class ProjectsView extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => _TrackingCard(
-                      invitation: filteredReqs[index], 
-                      isInvitation: false, 
-                      index: index, 
-                      controller: controller
-                    ),
+                        invitation: filteredReqs[index],
+                        isInvitation: false,
+                        index: index,
+                        controller: controller),
                     childCount: filteredReqs.length,
                   ),
                 ),
@@ -133,11 +146,14 @@ class ProjectsView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       child: Row(
         children: [
-          _buildStatCard('Active', controller.activeProjectsCount.toString(), AppTheme.success),
+          _buildStatCard(
+              'Active', controller.activeProjectsCount.toString(), AppTheme.success),
           const SizedBox(width: 12),
-          _buildStatCard('Invites', controller.pendingInvitesCount.toString(), AppTheme.primary),
+          _buildStatCard(
+              'Invites', controller.pendingInvitesCount.toString(), AppTheme.primary),
           const SizedBox(width: 12),
-          _buildStatCard('Requests', controller.pendingRequestsCount.toString(), AppTheme.secondary),
+          _buildStatCard(
+              'Requests', controller.pendingRequestsCount.toString(), AppTheme.secondary),
         ],
       ),
     );
@@ -150,9 +166,16 @@ class ProjectsView extends StatelessWidget {
         borderColor: color.withValues(alpha: 0.2),
         child: Column(
           children: [
-            Text(value, style: AppTheme.headlineMedium.copyWith(color: color, fontSize: 18)),
+            Text(value,
+                style: AppTheme.headlineMedium
+                    .copyWith(color: color, fontSize: 18)),
             const SizedBox(height: 4),
-            Text(label, style: const TextStyle(color: Colors.white38, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.white38,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.1)),
           ],
         ),
       ),
@@ -177,16 +200,23 @@ class ProjectsView extends StatelessWidget {
               child: ChoiceChip(
                 label: Text(filter),
                 selected: isSelected,
-                onSelected: (val) => controller.selectedFilter.value = filter,
+                onSelected: (val) =>
+                    controller.selectedFilter.value = filter,
                 backgroundColor: Colors.white.withValues(alpha: 0.05),
                 selectedColor: AppTheme.secondary.withValues(alpha: 0.2),
                 labelStyle: TextStyle(
                   color: isSelected ? AppTheme.secondary : Colors.white60,
                   fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isSelected
+                      ? FontWeight.bold
+                      : FontWeight.normal,
                 ),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                side: BorderSide(color: isSelected ? AppTheme.secondary.withValues(alpha: 0.3) : Colors.transparent),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                side: BorderSide(
+                    color: isSelected
+                        ? AppTheme.secondary.withValues(alpha: 0.3)
+                        : Colors.transparent),
               ),
             );
           });
@@ -200,7 +230,8 @@ class _SectionHeader extends StatelessWidget {
   final String title;
   final IconData icon;
   final Color color;
-  const _SectionHeader({required this.title, required this.icon, required this.color});
+  const _SectionHeader(
+      {required this.title, required this.icon, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +239,9 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Icon(icon, color: color, size: 16),
         const SizedBox(width: 8),
-        Text(title, style: AppTheme.titleLarge.copyWith(fontSize: 14, fontWeight: FontWeight.bold)),
+        Text(title,
+            style: AppTheme.titleLarge
+                .copyWith(fontSize: 14, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -229,19 +262,27 @@ class _TrackingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String person = isInvitation ? invitation.senderName : (invitation.receiverName ?? 'Project Owner');
-    final String? photoUrl = isInvitation ? invitation.senderPhotoUrl : invitation.receiverPhotoUrl;
+    final String person = isInvitation
+        ? invitation.senderName
+        : (invitation.receiverName ?? 'Project Owner');
+    final String? photoUrl = isInvitation
+        ? invitation.senderPhotoUrl
+        : invitation.receiverPhotoUrl;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassCard(
         child: InkWell(
-          onTap: invitation.status == 'accepted' 
-            ? () async {
-                final project = await controller.fetchProject(invitation.projectId);
-                if (project != null) Get.toNamed('/project-details', arguments: project);
-              }
-            : null,
+          // ✅ FIX: compare with InvitationStatus.accepted
+          onTap: invitation.status == InvitationStatus.accepted
+              ? () async {
+                  final project =
+                      await controller.fetchProject(invitation.projectId);
+                  if (project != null) {
+                    Get.toNamed('/project-details', arguments: project);
+                  }
+                }
+              : null,
           borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -251,80 +292,113 @@ class _TrackingCard extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 18,
-                      backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                      backgroundImage: photoUrl != null
+                          ? NetworkImage(photoUrl)
+                          : null,
                       backgroundColor: AppTheme.surfaceLight,
-                      child: photoUrl == null ? const Icon(Icons.person, size: 18) : null,
+                      child: photoUrl == null
+                          ? const Icon(Icons.person, size: 18)
+                          : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(invitation.projectTitle, style: AppTheme.titleLarge.copyWith(fontSize: 14)),
-                          Text('By $person', style: AppTheme.bodySmall.copyWith(color: AppTheme.textMuted, fontSize: 10)),
+                          Text(invitation.projectTitle,
+                              style: AppTheme.titleLarge
+                                  .copyWith(fontSize: 14)),
+                          Text('By $person',
+                              style: AppTheme.bodySmall.copyWith(
+                                  color: AppTheme.textMuted, fontSize: 10)),
                         ],
                       ),
                     ),
-                    StatusBadge.invitationStatus(invitation.status),
+                    // ✅ FIX: pass .toFirestoreString()
+                    StatusBadge.invitationStatus(
+                        invitation.status.toFirestoreString()),
                   ],
                 ),
-                if (invitation.status == 'accepted') 
+                // ✅ FIX
+                if (invitation.status == InvitationStatus.accepted)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Text('TAP TO OPEN WORKSPACE', style: AppTheme.bodySmall.copyWith(color: AppTheme.secondary, fontWeight: FontWeight.bold, fontSize: 10)),
+                        Text('TAP TO OPEN WORKSPACE',
+                            style: AppTheme.bodySmall.copyWith(
+                                color: AppTheme.secondary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10)),
                         const SizedBox(width: 4),
-                        const Icon(Icons.arrow_right_alt_rounded, color: AppTheme.secondary, size: 14),
+                        const Icon(Icons.arrow_right_alt_rounded,
+                            color: AppTheme.secondary, size: 14),
                       ],
                     ),
                   ),
-                if (invitation.status == 'pending' && isInvitation) ...[
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => controller.declineInvitation(invitation),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.error,
-                        side: BorderSide(color: AppTheme.error.withValues(alpha: 0.3)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                // ✅ FIX: compare with InvitationStatus.pending
+                if (invitation.status == InvitationStatus.pending &&
+                    isInvitation) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () =>
+                              controller.declineInvitation(invitation),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.error,
+                            side: BorderSide(
+                                color:
+                                    AppTheme.error.withValues(alpha: 0.3)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: const Text('Decline'),
+                        ),
                       ),
-                      child: const Text('Decline'),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () =>
+                              controller.acceptInvitation(invitation),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                AppTheme.success.withValues(alpha: 0.1),
+                            foregroundColor: AppTheme.success,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
+                          child: const Text('Accept'),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => controller.acceptInvitation(invitation),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.success.withValues(alpha: 0.1),
-                        foregroundColor: AppTheme.success,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        elevation: 0,
-                      ),
-                      child: const Text('Accept'),
+                ],
+                // ✅ FIX: compare with InvitationStatus.declined
+                if (invitation.status == InvitationStatus.declined &&
+                    invitation.declineReason != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        color: AppTheme.error.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8)),
+                    child: Text(
+                      'Reason: ${invitation.declineReason}',
+                      style: AppTheme.bodySmall
+                          .copyWith(color: AppTheme.error, fontSize: 11),
                     ),
                   ),
                 ],
-              ),
-            ],
-            if (invitation.status == 'declined' && invitation.declineReason != null) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: AppTheme.error.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
-                child: Text('Reason: ${invitation.declineReason}', style: AppTheme.bodySmall.copyWith(color: AppTheme.error, fontSize: 11)),
-              ),
-            ],
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  ).animate(delay: (80 * index).ms).fadeIn().slideY(begin: 0.1);
+    ).animate(delay: (80 * index).ms).fadeIn().slideY(begin: 0.1);
   }
 }

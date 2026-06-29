@@ -7,21 +7,17 @@ import '../../../../data/providers/firebase_provider.dart';
 
 class OwnerProjectManageController extends GetxController {
   final FirebaseProvider _firebaseProvider = FirebaseProvider();
-  
+
   final Rxn<ProjectModel> project = Rxn<ProjectModel>();
-  // دعوات المدير للمطورين (pending / accepted...)
   final RxList<InvitationModel> invitations = <InvitationModel>[].obs;
-  // طلبات انضمام المطورين لمشروعنا
   final RxList<InvitationModel> joinRequests = <InvitationModel>[].obs;
   final RxMap<String, String> developerNames = <String, String>{}.obs;
   final RxMap<String, String?> developerPhotos = <String, String?>{}.obs;
   final RxBool isLoading = true.obs;
   final RxBool isSavingNotes = false.obs;
 
-  // Controller للملاحظات الداخلية
   late TextEditingController notesController;
 
-  // Stats
   final RxInt pendingCount = 0.obs;
   final RxInt acceptedCount = 0.obs;
   final RxInt declinedCount = 0.obs;
@@ -97,8 +93,12 @@ class OwnerProjectManageController extends GetxController {
       await _firebaseProvider.updateProjectState(project.value!.id, {
         'internalNotes': notesController.text.trim(),
       });
-      Get.snackbar('Success', 'Project notes updated for the team.', 
-        backgroundColor: Colors.green.withValues(alpha: 0.1), colorText: Colors.green);
+      Get.snackbar(
+        'Success',
+        'Project notes updated for the team.',
+        backgroundColor: Colors.green.withValues(alpha: 0.1),
+        colorText: Colors.green,
+      );
     } catch (e) {
       Get.snackbar('Error', 'Failed to save notes');
     } finally {
@@ -112,20 +112,26 @@ class OwnerProjectManageController extends GetxController {
     if (currentProject == null) return;
 
     try {
-      final list = await _firebaseProvider.getInvitationsByProject(currentProject.id);
+      final list = await _firebaseProvider.getInvitationsByProject(
+        currentProject.id,
+      );
 
-      // فصل دعوات المدير عن طلبات المطورين
-      invitations.assignAll(list.where((i) => i.status != 'join_request').toList());
-      joinRequests.assignAll(list.where((i) => i.status == 'join_request').toList());
+      // ✅ FIX: compare with InvitationStatus enum
+      invitations.assignAll(
+        list.where((i) => i.status != InvitationStatus.joinRequest).toList(),
+      );
+      joinRequests.assignAll(
+        list.where((i) => i.status == InvitationStatus.joinRequest).toList(),
+      );
       _updateStats();
-      
-      // Fetch names for all senders/receivers
+
       final allUserIds = {
         ...list.map((i) => i.receiverId),
         ...list.map((i) => i.senderId),
       };
       for (var uid in allUserIds) {
-        if (!developerNames.containsKey(uid) || !developerPhotos.containsKey(uid)) {
+        if (!developerNames.containsKey(uid) ||
+            !developerPhotos.containsKey(uid)) {
           final user = await _firebaseProvider.getUser(uid);
           if (user != null) {
             developerNames[uid] = user.name;
@@ -141,18 +147,27 @@ class OwnerProjectManageController extends GetxController {
   }
 
   void _updateStats() {
-    pendingCount.value = invitations.where((i) => i.status == 'pending').length;
-    acceptedCount.value = invitations.where((i) => i.status == 'accepted').length;
-    declinedCount.value = invitations.where((i) => i.status == 'declined').length;
+    // ✅ FIX: use InvitationStatus enum
+    pendingCount.value = invitations
+        .where((i) => i.status == InvitationStatus.pending)
+        .length;
+    acceptedCount.value = invitations
+        .where((i) => i.status == InvitationStatus.accepted)
+        .length;
+    declinedCount.value = invitations
+        .where((i) => i.status == InvitationStatus.declined)
+        .length;
   }
 
   Future<void> deleteEntireProject() async {
     final currentProject = project.value;
     if (currentProject == null) return;
 
-    // إذا كان هناك مقبولين، يجب إرسال اعتذار أولاً لكل واحد
     if (acceptedCount.value > 0) {
-      Get.snackbar('Important', 'You must settle with all accepted developers before deletion');
+      Get.snackbar(
+        'Important',
+        'You must settle with all accepted developers before deletion',
+      );
       return;
     }
 
@@ -175,24 +190,35 @@ class OwnerProjectManageController extends GetxController {
     }
   }
 
-  Future<void> respondToJoinRequest(String invitationId, bool isAccepted, {String? declineReason}) async {
+  Future<void> respondToJoinRequest(
+    String invitationId,
+    bool isAccepted, {
+    String? declineReason,
+  }) async {
     final currentProject = project.value;
     if (currentProject == null) return;
 
     try {
-      await _firebaseProvider.respondToJoinRequest(invitationId, isAccepted, declineReason: declineReason);
+      await _firebaseProvider.respondToJoinRequest(
+        invitationId,
+        isAccepted,
+        declineReason: declineReason,
+      );
       await _loadProjectInvitations();
-      // Re-fetch project to see if status updated (Actually bindStream handles this, but we can await for certainty)
       final updated = await _firebaseProvider.getProject(currentProject.id);
       if (updated != null) project.value = updated;
-      
+
       Get.snackbar(
         isAccepted ? 'Developer Accepted! 🎉' : 'Request Declined',
-        isAccepted ? 'The developer has been accepted to the project.' : 'The join request has been declined.',
+        isAccepted
+            ? 'The developer has been accepted to the project.'
+            : 'The join request has been declined.',
         backgroundColor: isAccepted
             ? const Color(0xFF00C896).withValues(alpha: 0.15)
             : const Color(0xFFB00020).withValues(alpha: 0.15),
-        colorText: isAccepted ? const Color(0xFF00C896) : const Color(0xFFB00020),
+        colorText: isAccepted
+            ? const Color(0xFF00C896)
+            : const Color(0xFFB00020),
       );
     } catch (e) {
       Get.snackbar('Error', 'Failed to respond to request: $e');
@@ -220,13 +246,15 @@ class OwnerProjectManageController extends GetxController {
       };
 
       await _firebaseProvider.submitReview(reviewData, developerId);
-      
-      // Refresh project state
       final updated = await _firebaseProvider.getProject(currentProject.id);
       if (updated != null) project.value = updated;
-      
-      Get.snackbar('Success', 'Review submitted for ${developerNames[developerId] ?? "developer"}', 
-        backgroundColor: const Color(0xFF00C896).withValues(alpha: 0.1), colorText: const Color(0xFF00C896));
+
+      Get.snackbar(
+        'Success',
+        'Review submitted for ${developerNames[developerId] ?? "developer"}',
+        backgroundColor: const Color(0xFF00C896).withValues(alpha: 0.1),
+        colorText: const Color(0xFF00C896),
+      );
     } catch (e) {
       Get.snackbar('Error', 'Failed to submit review');
     } finally {

@@ -6,7 +6,7 @@ import '../../../../data/providers/firebase_provider.dart';
 import '../auth/auth_controller.dart';
 
 class ProjectDetailsController extends GetxController {
-  final FirebaseProvider _firebaseProvider = FirebaseProvider();
+  final FirebaseProvider _firebaseProvider = Get.find<FirebaseProvider>();
   final AuthController _authController = Get.find<AuthController>();
 
   final Rxn<ProjectModel> project = Rxn<ProjectModel>();
@@ -17,19 +17,17 @@ class ProjectDetailsController extends GetxController {
   final RxMap<String, String> teamNames = <String, String>{}.obs;
   final RxMap<String, String?> teamPhotos = <String, String?>{}.obs;
 
+  StreamSubscription? _projectSub;
+
   @override
   void onInit() {
     super.onInit();
     final ProjectModel initialProject = Get.arguments;
     project.value = initialProject;
-    
-    // ربط المشروع بالوقت الفعلي
     _setupStream(initialProject.id);
-
     _loadSyncData();
   }
 
-  StreamSubscription? _projectSub;
   void _setupStream(String projectId) {
     _projectSub?.cancel();
     _projectSub = _firebaseProvider.streamProject(projectId).listen((data) {
@@ -53,13 +51,17 @@ class ProjectDetailsController extends GetxController {
 
     try {
       isLoading.value = true;
-      
-      // 1. Get all invitations for this project to check consensus
-      final invites = await _firebaseProvider.getInvitationsByProject(currentProject.id);
-      final accepted = invites.where((i) => i.status == 'accepted').toList();
+
+      final invites = await _firebaseProvider.getInvitationsByProject(
+        currentProject.id,
+      );
+
+      // ✅ FIX: compare with InvitationStatus.accepted enum
+      final accepted = invites
+          .where((i) => i.status == InvitationStatus.accepted)
+          .toList();
       allProjectMembers.assignAll(accepted);
-      
-      // Fetch names and photos for each member
+
       for (var invite in accepted) {
         final uid = invite.receiverId;
         if (!teamNames.containsKey(uid) || !teamPhotos.containsKey(uid)) {
@@ -70,15 +72,16 @@ class ProjectDetailsController extends GetxController {
           }
         }
       }
-      
-      // 2. Find my specific invitation
+
+      // ✅ FIX: compare with InvitationStatus.accepted enum
       final mine = invites.firstWhereOrNull(
-        (i) => (i.receiverId == user.uid || i.senderId == user.uid) && i.status == 'accepted'
+        (i) =>
+            (i.receiverId == user.uid || i.senderId == user.uid) &&
+            i.status == InvitationStatus.accepted,
       );
       myInvitation.value = mine;
-
     } catch (e) {
-      // Error handled silently or via UI
+      // silent error
     } finally {
       isLoading.value = false;
     }
@@ -87,35 +90,29 @@ class ProjectDetailsController extends GetxController {
   Future<void> updateMyStatus(String newStatus) async {
     final currentProject = project.value;
     if (myInvitation.value == null || currentProject == null) return;
-    
+
     try {
       isUpdating.value = true;
       await _firebaseProvider.updateDevWorkStatus(
-        myInvitation.value!.id, 
-        currentProject.id, 
-        newStatus
-      );
-      
-      // Refresh local state
-      myInvitation.value = InvitationModel(
-        id: myInvitation.value!.id,
-        senderId: myInvitation.value!.senderId,
-        senderName: myInvitation.value!.senderName,
-        receiverId: myInvitation.value!.receiverId,
-        projectId: myInvitation.value!.projectId,
-        projectTitle: myInvitation.value!.projectTitle,
-        timestamp: myInvitation.value!.timestamp,
-        status: myInvitation.value!.status,
-        devWorkStatus: newStatus,
+        myInvitation.value!.id,
+        currentProject.id,
+        newStatus,
       );
 
-      // Re-fetch project to see if status changed to 'ready_for_review'
-      final updatedProject = await _firebaseProvider.getProject(currentProject.id);
-      if (updatedProject != null) {
-        project.value = updatedProject;
-      }
+      // ✅ FIX: convert String → DevWorkStatus enum
+      myInvitation.value = myInvitation.value!.copyWith(
+        devWorkStatus: DevWorkStatus.fromString(newStatus),
+      );
 
-      Get.snackbar('Success', 'Project status updated to: ${newStatus.replaceAll('_', ' ').toUpperCase()}');
+      final updatedProject = await _firebaseProvider.getProject(
+        currentProject.id,
+      );
+      if (updatedProject != null) project.value = updatedProject;
+
+      Get.snackbar(
+        'Success',
+        'Status updated: ${newStatus.replaceAll('_', ' ').toUpperCase()}',
+      );
     } catch (e) {
       Get.snackbar('Error', 'Failed to update status');
     } finally {

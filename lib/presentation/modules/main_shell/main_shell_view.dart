@@ -1,3 +1,5 @@
+// lib/presentation/modules/main_shell/main_shell_view.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'main_shell_controller.dart';
@@ -14,20 +16,19 @@ class MainShellView extends GetView<MainShellController> {
       backgroundColor: AppTheme.background,
       body: Stack(
         children: [
-          // Main Content
-          Obx(() => IndexedStack(
-                index: controller.currentIndex.value,
-                children: controller.pages,
-              )),
-          // Floating AI Assistant Button (Only for Managers)
+          Obx(
+            () => IndexedStack(
+              index: controller.currentIndex.value,
+              children: controller.pages,
+            ),
+          ),
+          // ✅ إصلاح: كان 'manager' والصح 'owner'
           Obx(() {
-            final authController = Get.find<AuthController>();
-            if (authController.currentUser.value?.role != 'manager') {
-              return const SizedBox.shrink();
-            }
+            final user = Get.find<AuthController>().currentUser.value;
+            if (user?.isOwner != true) return const SizedBox.shrink();
             return Positioned(
               right: 20,
-              bottom: 100, // Above BottomNav
+              bottom: 100,
               child: _buildFloatingAIButton(),
             );
           }),
@@ -48,18 +49,23 @@ class MainShellView extends GetView<MainShellController> {
           ),
         ),
       ),
-      child: Obx(() => BottomNavigationBar(
-            currentIndex: controller.currentIndex.value,
-            onTap: controller.changePage,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: AppTheme.primary,
-            unselectedItemColor: Colors.white38,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            unselectedLabelStyle: const TextStyle(fontSize: 12),
-            items: controller.navItems,
-          )),
+      child: Obx(
+        () => BottomNavigationBar(
+          currentIndex: controller.currentIndex.value,
+          onTap: controller.changePage,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: AppTheme.primary,
+          unselectedItemColor: Colors.white38,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
+          items: controller.navItems,
+        ),
+      ),
     );
   }
 
@@ -77,10 +83,7 @@ class MainShellView extends GetView<MainShellController> {
         height: 60,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              AppTheme.primary,
-              AppTheme.primary.withBlue(255),
-            ],
+            colors: [AppTheme.primary, AppTheme.primary.withBlue(255)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

@@ -20,7 +20,11 @@ class MyProjectsView extends StatelessWidget {
       child: Scaffold(
         body: Stack(
           children: [
-            Container(decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient)),
+            Container(
+              decoration: const BoxDecoration(
+                gradient: AppTheme.backgroundGradient,
+              ),
+            ),
             SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,7 +38,10 @@ class MyProjectsView extends StatelessWidget {
                       indicatorSize: TabBarIndicatorSize.label,
                       labelColor: AppTheme.secondary,
                       unselectedLabelColor: AppTheme.textMuted,
-                      labelStyle: AppTheme.titleLarge.copyWith(fontSize: 14, fontWeight: FontWeight.bold),
+                      labelStyle: AppTheme.titleLarge.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                       tabs: const [
                         Tab(text: 'Received'),
                         Tab(text: 'Sent'),
@@ -65,11 +72,17 @@ class MyProjectsView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Recruitment Tracker', style: AppTheme.headlineLarge.copyWith(fontSize: 28)),
+          Text(
+            'Recruitment Tracker',
+            style: AppTheme.headlineLarge.copyWith(fontSize: 28),
+          ),
           const SizedBox(height: 6),
           Text(
             'Monitor incoming requests and outgoing invitations.',
-            style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondary, fontSize: 12),
+            style: AppTheme.bodyMedium.copyWith(
+              color: AppTheme.textSecondary,
+              fontSize: 12,
+            ),
           ),
           const SizedBox(height: 16),
         ],
@@ -79,10 +92,12 @@ class MyProjectsView extends StatelessWidget {
 
   Widget _buildReceivedList(OwnerProjectsController controller) {
     return Obx(() {
-      if (controller.isLoading.value && controller.receivedJoinRequests.isEmpty) {
-        return const Center(child: CircularProgressIndicator(color: AppTheme.secondary));
+      if (controller.isLoading.value &&
+          controller.receivedJoinRequests.isEmpty) {
+        return const Center(
+          child: CircularProgressIndicator(color: AppTheme.secondary),
+        );
       }
-
       if (controller.receivedJoinRequests.isEmpty) {
         return AppEmptyState(
           icon: Icons.inbox_outlined,
@@ -90,7 +105,6 @@ class MyProjectsView extends StatelessWidget {
           subtitle: 'No developers have requested to join your projects yet.',
         );
       }
-
       return ListView.builder(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
@@ -107,17 +121,18 @@ class MyProjectsView extends StatelessWidget {
   Widget _buildSentList(OwnerProjectsController controller) {
     return Obx(() {
       if (controller.isLoading.value && controller.sentInvitations.isEmpty) {
-        return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+        return const Center(
+          child: CircularProgressIndicator(color: AppTheme.primary),
+        );
       }
-
       if (controller.sentInvitations.isEmpty) {
         return AppEmptyState(
           icon: Icons.outbox_outlined,
           title: 'No Sent Invitations',
-          subtitle: 'You haven\'t sent any recruitment invitations to developers yet.',
+          subtitle:
+              "You haven't sent any recruitment invitations to developers yet.",
         );
       }
-
       return ListView.builder(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
@@ -132,29 +147,44 @@ class MyProjectsView extends StatelessWidget {
   }
 }
 
-
 class _TrackingCard extends StatelessWidget {
   final InvitationModel invitation;
   final bool isIncoming;
   final int index;
 
-  const _TrackingCard({required this.invitation, required this.isIncoming, required this.index});
+  const _TrackingCard({
+    required this.invitation,
+    required this.isIncoming,
+    required this.index,
+  });
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<OwnerProjectsController>();
-    final String name = isIncoming ? invitation.senderName : (invitation.receiverName ?? 'Developer');
-    final String? photoUrl = isIncoming ? invitation.senderPhotoUrl : invitation.receiverPhotoUrl;
-    final bool isJoinRequest = invitation.status == 'join_request';
+    final String name = isIncoming
+        ? invitation.senderName
+        : (invitation.receiverName ?? 'Developer');
+    final String? photoUrl = isIncoming
+        ? invitation.senderPhotoUrl
+        : invitation.receiverPhotoUrl;
+
+    // ✅ FIX: compare with InvitationStatus.joinRequest enum
+    final bool isJoinRequest =
+        invitation.status == InvitationStatus.joinRequest;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassCard(
-        borderColor: isJoinRequest ? AppTheme.secondary.withValues(alpha: 0.2) : null,
+        borderColor: isJoinRequest
+            ? AppTheme.secondary.withValues(alpha: 0.2)
+            : null,
         child: Column(
           children: [
             InkWell(
-              onTap: () => Get.toNamed('/owner-project-manage', arguments: invitation.projectId),
+              onTap: () => Get.toNamed(
+                '/owner-project-manage',
+                arguments: invitation.projectId,
+              ),
               borderRadius: BorderRadius.circular(20),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -164,9 +194,13 @@ class _TrackingCard extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 20,
-                          backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                          backgroundImage: photoUrl != null
+                              ? NetworkImage(photoUrl)
+                              : null,
                           backgroundColor: AppTheme.surfaceLight,
-                          child: photoUrl == null ? const Icon(Icons.person, size: 20) : null,
+                          child: photoUrl == null
+                              ? const Icon(Icons.person, size: 20)
+                              : null,
                         ),
                         Positioned(
                           right: -2,
@@ -174,12 +208,19 @@ class _TrackingCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(2),
                             decoration: BoxDecoration(
-                              color: isIncoming ? AppTheme.secondary : AppTheme.primary,
+                              color: isIncoming
+                                  ? AppTheme.secondary
+                                  : AppTheme.primary,
                               shape: BoxShape.circle,
-                              border: Border.all(color: AppTheme.surface, width: 2),
+                              border: Border.all(
+                                color: AppTheme.surface,
+                                width: 2,
+                              ),
                             ),
                             child: Icon(
-                              isIncoming ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                              isIncoming
+                                  ? Icons.arrow_downward_rounded
+                                  : Icons.arrow_upward_rounded,
                               size: 10,
                               color: Colors.black,
                             ),
@@ -194,18 +235,32 @@ class _TrackingCard extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Text(name, style: AppTheme.titleLarge.copyWith(fontSize: 15)),
+                              Text(
+                                name,
+                                style: AppTheme.titleLarge.copyWith(
+                                  fontSize: 15,
+                                ),
+                              ),
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: (isIncoming ? AppTheme.secondary : AppTheme.primary).withValues(alpha: 0.1),
+                                  color:
+                                      (isIncoming
+                                              ? AppTheme.secondary
+                                              : AppTheme.primary)
+                                          .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
                                   isIncoming ? 'INCOMING' : 'SENT',
                                   style: TextStyle(
-                                    color: isIncoming ? AppTheme.secondary : AppTheme.primary,
+                                    color: isIncoming
+                                        ? AppTheme.secondary
+                                        : AppTheme.primary,
                                     fontSize: 8,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 0.5,
@@ -217,14 +272,20 @@ class _TrackingCard extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             invitation.projectTitle,
-                            style: AppTheme.bodySmall.copyWith(color: AppTheme.textMuted, fontSize: 11),
+                            style: AppTheme.bodySmall.copyWith(
+                              color: AppTheme.textMuted,
+                              fontSize: 11,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
-                    StatusBadge.invitationStatus(invitation.status),
+                    // ✅ FIX: pass .toFirestoreString()
+                    StatusBadge.invitationStatus(
+                      invitation.status.toFirestoreString(),
+                    ),
                   ],
                 ),
               ),
@@ -237,37 +298,74 @@ class _TrackingCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: TextButton(
-                        onPressed: () => controller.respondToJoinRequest(invitation.id, false),
-                        style: TextButton.styleFrom(foregroundColor: AppTheme.error),
-                        child: const Text('Decline', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        onPressed: () => controller.respondToJoinRequest(
+                          invitation.id,
+                          false,
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.error,
+                        ),
+                        child: const Text(
+                          'Decline',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => controller.respondToJoinRequest(invitation.id, true),
+                        onPressed: () => controller.respondToJoinRequest(
+                          invitation.id,
+                          true,
+                        ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.secondary.withValues(alpha: 0.1),
+                          backgroundColor: AppTheme.secondary.withValues(
+                            alpha: 0.1,
+                          ),
                           foregroundColor: AppTheme.secondary,
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                        child: const Text('Accept', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          'Accept',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ],
-            if (invitation.status == 'accepted')
+            // ✅ FIX: compare with InvitationStatus.accepted
+            if (invitation.status == InvitationStatus.accepted)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('TAP TO MANAGE', style: AppTheme.bodySmall.copyWith(color: AppTheme.secondary, letterSpacing: 1.2, fontWeight: FontWeight.bold, fontSize: 9)),
+                    Text(
+                      'TAP TO MANAGE',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.secondary,
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 9,
+                      ),
+                    ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.arrow_forward_rounded, color: AppTheme.secondary, size: 10),
+                    const Icon(
+                      Icons.arrow_forward_rounded,
+                      color: AppTheme.secondary,
+                      size: 10,
+                    ),
                   ],
                 ),
               ),

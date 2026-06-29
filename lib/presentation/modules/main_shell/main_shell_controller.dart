@@ -22,14 +22,10 @@ class MainShellController extends GetxController {
   StreamSubscription? _ownerBadgeSub;
 
   var currentIndex = 0.obs;
+  final RxInt devPendingInvites = 0.obs;
+  final RxInt ownerPendingRequests = 0.obs;
 
-  // Badge counts
-  final RxInt devPendingInvites = 0.obs;   // للمطور: دعوات جديدة من المدير
-  final RxInt ownerPendingRequests = 0.obs; // للمدير: طلبات انضمام من مطورين
-
-  // IDs of invitations already notified to avoid spam
   final Set<String> _notifiedInviteIds = {};
-  // IDs of join requests already notified (status changed)
   final Set<String> _notifiedJoinStatusIds = {};
 
   @override
@@ -49,7 +45,6 @@ class MainShellController extends GetxController {
   void _setupListeners() {
     final user = _authController.currentUser.value;
     if (user == null) return;
-
     if (user.role == 'developer') {
       _listenToDevInvitations(user.uid);
       _listenToJoinRequestStatuses(user.uid);
@@ -58,14 +53,19 @@ class MainShellController extends GetxController {
     }
   }
 
-  /// مطور: يسمع للدعوات الجديدة من المدير
   void _listenToDevInvitations(String uid) {
-    _invitationSub = _firebaseProvider.streamInvitations(uid).listen((invitations) {
-      devPendingInvites.value = invitations.where((i) => i.status == 'pending').length;
+    _invitationSub = _firebaseProvider.streamInvitations(uid).listen((
+      invitations,
+    ) {
+      // ✅ FIX: use InvitationStatus.pending
+      devPendingInvites.value = invitations
+          .where((i) => i.status == InvitationStatus.pending)
+          .length;
 
-      // إشعار بالدعوات الجديدة فقط (مرة واحدة لكل دعوة)
       for (final invite in invitations) {
-        if (invite.status == 'pending' && !_notifiedInviteIds.contains(invite.id)) {
+        // ✅ FIX
+        if (invite.status == InvitationStatus.pending &&
+            !_notifiedInviteIds.contains(invite.id)) {
           _notifiedInviteIds.add(invite.id);
           _showInvitationNotification(invite);
         }
@@ -73,16 +73,18 @@ class MainShellController extends GetxController {
     });
   }
 
-  /// مطور: يسمع لتغيير حالة طلبات الانضمام (join_request -> accepted/declined)
   void _listenToJoinRequestStatuses(String uid) {
-    _joinRequestStatusSub = _firebaseProvider.streamMyJoinRequests(uid).listen((requests) {
+    _joinRequestStatusSub = _firebaseProvider.streamMyJoinRequests(uid).listen((
+      requests,
+    ) {
       for (final req in requests) {
-        final key = '${req.id}_${req.status}';
+        final key = '${req.id}_${req.status.toFirestoreString()}';
         if (!_notifiedJoinStatusIds.contains(key)) {
-          if (req.status == 'accepted') {
+          // ✅ FIX: use InvitationStatus.accepted / .declined
+          if (req.status == InvitationStatus.accepted) {
             _notifiedJoinStatusIds.add(key);
             _showJoinRequestNotification(req, accepted: true);
-          } else if (req.status == 'declined') {
+          } else if (req.status == InvitationStatus.declined) {
             _notifiedJoinStatusIds.add(key);
             _showJoinRequestNotification(req, accepted: false);
           }
@@ -91,11 +93,12 @@ class MainShellController extends GetxController {
     });
   }
 
-  /// مدير: يسمع لعدد طلبات الانضمام المعلقة (للـ Badge)
   void _listenToOwnerPendingRequests(String uid) {
-    _ownerBadgeSub = _firebaseProvider.streamPendingJoinRequestsCount(uid).listen((count) {
-      ownerPendingRequests.value = count;
-    });
+    _ownerBadgeSub = _firebaseProvider
+        .streamPendingJoinRequestsCount(uid)
+        .listen((count) {
+          ownerPendingRequests.value = count;
+        });
   }
 
   void _showInvitationNotification(InvitationModel invitation) {
@@ -112,14 +115,23 @@ class MainShellController extends GetxController {
       mainButton: TextButton(
         onPressed: () {
           Get.back();
-          changePage(1); // Go to Projects tab
+          changePage(1);
         },
-        child: const Text('VIEW', style: TextStyle(color: Color(0xFF6C63FF), fontWeight: FontWeight.bold)),
+        child: const Text(
+          'VIEW',
+          style: TextStyle(
+            color: Color(0xFF6C63FF),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
 
-  void _showJoinRequestNotification(InvitationModel req, {required bool accepted}) {
+  void _showJoinRequestNotification(
+    InvitationModel req, {
+    required bool accepted,
+  }) {
     Get.snackbar(
       accepted ? '✅ Request Accepted!' : '❌ Request Declined',
       accepted
@@ -136,12 +148,15 @@ class MainShellController extends GetxController {
       mainButton: TextButton(
         onPressed: () {
           Get.back();
-          changePage(1); // Go to Projects tab to see status
+          changePage(1);
         },
-        child: Text('VIEW', style: TextStyle(
-          color: accepted ? const Color(0xFF00C896) : const Color(0xFFFF4444),
-          fontWeight: FontWeight.bold,
-        )),
+        child: Text(
+          'VIEW',
+          style: TextStyle(
+            color: accepted ? const Color(0xFF00C896) : const Color(0xFFFF4444),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
@@ -169,23 +184,41 @@ class MainShellController extends GetxController {
     final role = _authController.currentUser.value?.role;
     if (role == 'developer') {
       return [
-        const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Dashboard'),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.home_rounded),
+          label: 'Dashboard',
+        ),
         BottomNavigationBarItem(
           icon: _buildBadgedIcon(Icons.work_rounded, devPendingInvites),
           label: 'Projects',
         ),
-        const BottomNavigationBarItem(icon: Icon(Icons.auto_awesome_rounded), label: 'Matches'),
-        const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.auto_awesome_rounded),
+          label: 'Matches',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.person_rounded),
+          label: 'Profile',
+        ),
       ];
     } else {
       return [
-        const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Dashboard'),
-        const BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline_rounded), label: 'Create'),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.home_rounded),
+          label: 'Dashboard',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.add_circle_outline_rounded),
+          label: 'Create',
+        ),
         BottomNavigationBarItem(
           icon: _buildBadgedIcon(Icons.list_alt_rounded, ownerPendingRequests),
           label: 'Recruitment',
         ),
-        const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.person_rounded),
+          label: 'Profile',
+        ),
       ];
     }
   }
@@ -210,7 +243,11 @@ class MainShellController extends GetxController {
               constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
               child: Text(
                 c > 9 ? '9+' : '$c',
-                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
