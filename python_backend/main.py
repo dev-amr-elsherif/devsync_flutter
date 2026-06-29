@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import logging
 from typing import List, Optional, Dict, Any
@@ -6,11 +7,17 @@ from github_service import fetch_github_data
 from ai_service import analyze_developer_metrics
 from matching_service import batch_calculate_matches
 
-# Initialize logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="DevSync AI Analyzer")
+app = FastAPI(title="DevSync AI Analyzer", version="1.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class AnalyzeRequest(BaseModel):
     username: str
@@ -44,20 +51,17 @@ class MatchResult(BaseModel):
 class MatchResponse(BaseModel):
     matches: List[MatchResult]
 
+
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_github_profile(request: AnalyzeRequest):
     try:
-        logger.info(f"Received analysis request for GitHub user: {request.username}")
-        
+        logger.info(f"Analysis request for: {request.username}")
         if not request.token:
             raise HTTPException(status_code=400, detail="GitHub Access Token is required")
-            
-        # 1. Fetch data from github_service
+
         github_metrics = fetch_github_data(request.username, request.token)
-        
-        # 2. Process data with ai_service
         ai_result = analyze_developer_metrics(github_metrics)
-        
+
         return AnalyzeResponse(
             githubUrl=f"https://github.com/{request.username}",
             githubSeniority=ai_result.githubSeniority,
@@ -69,9 +73,12 @@ async def analyze_github_profile(request: AnalyzeRequest):
             location=ai_result.location,
             topRepositories=ai_result.topRepositories
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error analyzing profile: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/matches/calculate", response_model=MatchResponse)
 async def calculate_matches(request: MatchRequest):
@@ -87,6 +94,16 @@ async def calculate_matches(request: MatchRequest):
         logger.error(f"Error calculating matches: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/")
 def read_root():
-    return {"message": "DevSync AI Analyzer API is running"}
+    return {
+        "message": "DevSync AI Analyzer API is running",
+        "version": "1.1.0",
+        "endpoints": ["/analyze", "/matches/calculate", "/health"]
+    }
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
