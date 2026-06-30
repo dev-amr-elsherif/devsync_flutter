@@ -1,29 +1,42 @@
 import 'dart:io' show Platform;
+
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
 import 'app/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_controller.dart';
 import 'data/services/analytics_service.dart';
 import 'data/services/fcm_service.dart';
 import 'data/services/remote_config_service.dart';
+import 'firebase_options.dart';
 import 'flavors/flavor_config.dart';
-
-
-
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // ── Hive ──────────────────────────────────────────────────────────
+  await Hive.initFlutter();
+  await Hive.openBox('settings');
+
+  // ── Theme Controller ──────────────────────────────────────────────
+  final themeCtrl = Get.put(ThemeController(), permanent: true);
+
   // ── System UI ──────────────────────────────────────────────────────
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: AppTheme.background,
-    systemNavigationBarIconBrightness: Brightness.light,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness:
+          themeCtrl.isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor:
+          themeCtrl.isDark ? const Color(0xFF0A0E1A) : const Color(0xFFF4F6FF),
+      systemNavigationBarIconBrightness:
+          themeCtrl.isDark ? Brightness.light : Brightness.dark,
+    ),
+  );
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
@@ -65,15 +78,34 @@ class DevSyncApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: FlavorConfig.instance.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
-      initialRoute: AppPages.initial,
-      getPages: AppPages.routes,
-      defaultTransition: Transition.fadeIn,
-      transitionDuration: const Duration(milliseconds: 350),
+    return GetBuilder<ThemeController>(
+      builder: (themeCtrl) {
+        // ── System UI يتحدث مع كل تغيير في الثيم ──────────────────
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness:
+                themeCtrl.isDark ? Brightness.light : Brightness.dark,
+            systemNavigationBarColor: themeCtrl.isDark
+                ? const Color(0xFF0A0E1A)
+                : const Color(0xFFF4F6FF),
+            systemNavigationBarIconBrightness:
+                themeCtrl.isDark ? Brightness.light : Brightness.dark,
+          ),
+        );
+
+        return GetMaterialApp(
+          title: FlavorConfig.instance.appName,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeCtrl.themeMode,
+          initialRoute: AppPages.initial,
+          getPages: AppPages.routes,
+          defaultTransition: Transition.fadeIn,
+          transitionDuration: const Duration(milliseconds: 350),
+        );
+      },
     );
   }
 }
