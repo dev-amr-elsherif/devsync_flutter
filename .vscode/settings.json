@@ -1,4 +1,28 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
-    "cmake.sourceDirectory": "C:/Users/momen/Documents/GitHub/sandbox/windows"
+    "cmake.sourceDirectory": "C:/Users/momen/Documents/GitHub/sandbox/windows",
+    "cSpell.words": [
+        "devsync",
+        "elif",
+        "fenix",
+        "Firestore",
+        "fromkeys",
+        "glassmorphism",
+        "Groq",
+        "httpx",
+        "ints",
+        "jailbroken",
+        "jank",
+        "notif",
+        "proguard",
+        "Pydantic",
+        "reactjs",
+        "Replaceability",
+        "requerying",
+        "Riverpod",
+        "signups",
+        "snackbars",
+        "Supabase",
+        "Uvicorn"
+    ]
 }
