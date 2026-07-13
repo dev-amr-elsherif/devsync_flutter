@@ -25,12 +25,12 @@ class SkillChip extends StatelessWidget {
         bottom: 2,
       ),
       decoration: BoxDecoration(
-        color: isSelected 
+        color: isSelected
             ? AppTheme.primary.withValues(alpha: 0.2)
             : AppTheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isSelected 
+          color: isSelected
               ? AppTheme.primary.withValues(alpha: 0.4)
               : AppTheme.primary.withValues(alpha: 0.2),
           width: 1,
@@ -56,7 +56,8 @@ class SkillChip extends StatelessWidget {
               constraints: const BoxConstraints(),
               padding: EdgeInsets.zero,
               onPressed: onDelete,
-              icon: const Icon(Icons.close_rounded, size: 14, color: AppTheme.textMuted),
+              // ✅ FIX: removed const — AppTheme.textMuted is a getter not const
+              icon: Icon(Icons.close_rounded, size: 14, color: AppTheme.textMuted),
             ),
           ],
         ],

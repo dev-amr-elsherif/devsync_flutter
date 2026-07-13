@@ -25,6 +25,7 @@ class RemoteConfigService {
       await _rc.setDefaults({
         ApiConstants.rcGeminiApiKey:       '',
         ApiConstants.rcGithubClientSecret: '',
+        ApiConstants.rcGroqApiKey:         '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',
       });
     } catch (_) { /* ignore */ }
 

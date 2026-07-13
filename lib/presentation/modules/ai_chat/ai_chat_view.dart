@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+
 import '../../../core/theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import 'ai_chat_controller.dart';
@@ -18,6 +18,7 @@ class AIChatView extends GetView<AIChatController> {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: AppTheme.background.withValues(alpha: 0.98),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
@@ -31,7 +32,6 @@ class AIChatView extends GetView<AIChatController> {
             child: Obx(() => ListView.builder(
               controller: controller.scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              reverse: false, // Normal order
               itemCount: controller.history.length,
               itemBuilder: (context, index) {
                 final message = controller.history[index];
@@ -39,25 +39,17 @@ class AIChatView extends GetView<AIChatController> {
               },
             )),
           ),
-          
           Obx(() => controller.isLoading.value ? _buildTypingIndicator() : const SizedBox.shrink()),
-
-          // ─── NEW: Quick Replies ─────────────────────────────────────
           Obx(() => _buildQuickReplies()),
-
-          // منطقة عرض المقترح في حال تم توليده
           Obx(() {
             final proposal = controller.proposedProject;
             if (proposal.isEmpty) return const SizedBox.shrink();
             return _buildProposalCard(proposal).animate().scale(curve: Curves.elasticOut);
           }),
-
-          // زر إنهاء النقاش وتوليد المشروع (فقط إذا كان جاهزاً)
           if (isOwner) 
             Obx(() => (controller.isReadyToFinalize.value && controller.proposedProject.isEmpty) 
               ? _buildFinalizeButton() 
               : const SizedBox.shrink()),
-
           _buildInputArea(textController),
         ],
       ),
@@ -166,9 +158,9 @@ class AIChatView extends GetView<AIChatController> {
     );
   }
 
-  Widget _buildMessageBubble(Content content) {
-    final bool isModel = content.role == 'model';
-    final String text = content.parts.whereType<TextPart>().map((e) => e.text).join();
+  Widget _buildMessageBubble(dynamic content) {
+    final bool isModel = content['role'] == 'model';
+    final String text = content['text'] ?? '';
 
     return Align(
       alignment: isModel ? Alignment.centerLeft : Alignment.centerRight,
@@ -263,7 +255,7 @@ class AIChatView extends GetView<AIChatController> {
 
   Widget _buildInputArea(TextEditingController textController) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: GlassCard(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Row(
@@ -273,7 +265,7 @@ class AIChatView extends GetView<AIChatController> {
                 controller: textController,
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  hintText: 'Discuss project dimensions...',
+                  hintText: 'Type your answer...',
                   hintStyle: TextStyle(color: Colors.white38),
                   border: InputBorder.none,
                 ),

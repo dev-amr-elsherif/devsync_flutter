@@ -235,10 +235,14 @@ class _TrackingCard extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Text(
-                                name,
-                                style: AppTheme.titleLarge.copyWith(
-                                  fontSize: 15,
+                              Flexible(
+                                child: Text(
+                                  name,
+                                  style: AppTheme.titleLarge.copyWith(
+                                    fontSize: 15,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -248,11 +252,10 @@ class _TrackingCard extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:
-                                      (isIncoming
-                                              ? AppTheme.secondary
-                                              : AppTheme.primary)
-                                          .withValues(alpha: 0.1),
+                                  color: (isIncoming
+                                          ? AppTheme.secondary
+                                          : AppTheme.primary)
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(

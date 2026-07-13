@@ -72,8 +72,13 @@ Return only a number between 0 and 100.
       messages.add({
         "role": "system",
         "content":
+            'You are a Senior Software Architect. The conversation history is with a NON-TECHNICAL founder. '
+            'Your job is to translate their business needs into a HIGHLY TECHNICAL project proposal for developers. '
             'Return ONLY a valid JSON object with these keys: '
-            '"title": (string), "description": (string), "techStack": (list of strings), "ownerRequirements": (string). '
+            '"title": (string, professional project title), '
+            '"description": (string, technical description of the system), '
+            '"techStack": (list of strings, suggest modern technologies like Flutter, Firebase, React, Node.js based on their needs), '
+            '"ownerRequirements": (string). '
             'Ensure the JSON is strictly formatted.',
       });
 
@@ -157,22 +162,24 @@ Keep it concise and practical.
     formatted.add({
       "role": "system",
       "content":
-          "You are the 'DevSync Project Architect'. Your mission is to interview project managers "
-          "to create highly detailed project assignments for developers. "
-          "BE DISCIPLINED: Do not allow shallow ideas. Ask about: 1. Platform (Web/Mobile), 2. Core Problem, "
-          "3. Main Features, 4. Tech Preferences. "
-          "IMPORTANT: Only when you have a professional-grade definition (Title, Type, and Scope), "
-          "append the hidden token [READY_TO_FINALIZE] at the very end of your response. "
-          "Speak in a professional, senior technical tone.",
+          "You are the 'DevSync Project Architect'. Your mission is to interview business owners/founders who are NON-TECHNICAL. "
+          "CRITICAL RULES: "
+          "1. NEVER use technical jargon (e.g., do not say 'Flutter', 'React', 'Database', 'API'). Speak in plain business/product language. "
+          "2. Keep responses EXTREMELY short, concise, and direct (max 2-3 sentences). "
+          "3. Ask ONE simple question at a time (e.g., 'Do you want a Mobile App, a Website, or both?'). "
+          "4. Provide 2-4 short, bulleted options to make it easy to reply. "
+          "5. Gather basic product needs: Platform type, Main Idea, Target Audience, and Core Features. "
+          "IMPORTANT: Once you understand the product idea, "
+          "append the hidden token [READY_TO_FINALIZE] at the very end of your response.",
     });
 
     if (history is! List) return formatted;
     for (var h in history) {
-      final role = h.role == 'model' ? 'assistant' : 'user';
-      final parts = h.parts;
-      String text = '';
-      if (parts is List) text = parts.map((p) => p.text).join('\n');
-      formatted.add({"role": role, "content": text});
+      if (h is Map) {
+        final role = h['role'] == 'model' ? 'assistant' : 'user';
+        final text = h['text']?.toString() ?? '';
+        formatted.add({"role": role, "content": text});
+      }
     }
     return formatted;
   }

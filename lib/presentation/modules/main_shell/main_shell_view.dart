@@ -6,7 +6,7 @@ import 'main_shell_controller.dart';
 import '../auth/auth_controller.dart';
 import '../../../core/theme/app_theme.dart';
 import '../ai_chat/ai_chat_view.dart';
-
+import '../ai_chat/ai_chat_controller.dart';
 class MainShellView extends GetView<MainShellController> {
   const MainShellView({super.key});
 
@@ -72,6 +72,7 @@ class MainShellView extends GetView<MainShellController> {
   Widget _buildFloatingAIButton() {
     return GestureDetector(
       onTap: () {
+        Get.lazyPut(() => AIChatController(), fenix: true);
         Get.bottomSheet(
           const AIChatView(),
           isScrollControlled: true,

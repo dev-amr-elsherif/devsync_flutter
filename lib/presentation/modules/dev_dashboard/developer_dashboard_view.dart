@@ -1,14 +1,13 @@
-// lib/presentation/modules/dev_dashboard/developer_dashboard_view.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/theme_controller.dart';
 import '../../../../data/models/invitation_model.dart';
 import '../../widgets/glass_card.dart';
-import '../../widgets/loading_shimmer.dart';
-import '../../widgets/match_score_badge.dart';
 import '../../widgets/stat_card.dart';
+import '../../widgets/themed_background.dart';
 import '../auth/auth_controller.dart';
 import '../dev_projects/dev_invitations_controller.dart';
 import 'developer_controller.dart';
@@ -19,33 +18,26 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: AppTheme.backgroundGradient,
+      body: ThemedBackground(
+        child: SafeArea(
+          child: RefreshIndicator(
+            color: AppTheme.primary,
+            onRefresh: controller.refreshMatches,
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildAppBar(context),
+                _buildStatsRow(context),
+                _buildInvitationsSection(context),
+              ],
             ),
           ),
-          SafeArea(
-            child: RefreshIndicator(
-              color: AppTheme.primary,
-              onRefresh: controller.refreshMatches,
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  _buildAppBar(),
-                  _buildStatsRow(),
-                  _buildInvitationsSection(),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  SliverAppBar _buildAppBar() {
+  SliverAppBar _buildAppBar(BuildContext context) {
     final user = Get.find<AuthController>().currentUser.value;
     return SliverAppBar(
       expandedHeight: 120,
@@ -54,9 +46,20 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
       backgroundColor: Colors.transparent,
       elevation: 0,
       actions: [
+        Obx(() {
+          final isDark = ThemeController.to.isDark;
+          return IconButton(
+            onPressed: () => ThemeController.to.toggleTheme(),
+            icon: Icon(
+              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              color: context.colors.textSecondary,
+            ),
+            tooltip: isDark ? 'Light Mode' : 'Dark Mode',
+          );
+        }),
         IconButton(
           onPressed: () => Get.find<AuthController>().signOut(),
-          icon: const Icon(Icons.logout_rounded, color: AppTheme.textSecondary),
+          icon: Icon(Icons.logout_rounded, color: context.colors.textSecondary),
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
@@ -67,13 +70,16 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
           children: [
             Text(
               'Hey, ${user?.name.split(' ').first ?? 'Developer'} 👋',
-              style: AppTheme.headlineLarge.copyWith(fontSize: 18),
+              style: AppTheme.headlineLarge.copyWith(
+                fontSize: 18,
+                color: context.colors.textPrimary,
+              ),
             ),
             Text(
               'Your personalized AI career matches.',
               style: AppTheme.bodyMedium.copyWith(
                 fontSize: 10,
-                color: AppTheme.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ],
@@ -82,8 +88,7 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
     );
   }
 
-  Widget _buildStatsRow() {
-    // ✅ إصلاح: Get.find بدل Get.put جوا Obx
+  Widget _buildStatsRow(BuildContext context) {
     final invitesController = Get.find<DevInvitationsController>();
     return SliverToBoxAdapter(
       child: Obx(() {
@@ -113,7 +118,7 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
               ),
               if (invitesController.activeProjectsCount > 0) ...[
                 const SizedBox(height: 24),
-                _buildRecentActivity(invitesController),
+                _buildRecentActivity(context, invitesController),
               ],
             ],
           ).animate().fadeIn().slideY(begin: 0.1),
@@ -122,11 +127,12 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
     );
   }
 
-  Widget _buildInvitationsSection() {
+  Widget _buildInvitationsSection(BuildContext context) {
     return SliverToBoxAdapter(
       child: Obx(() {
-        if (controller.pendingInvitations.isEmpty)
+        if (controller.pendingInvitations.isEmpty) {
           return const SizedBox.shrink();
+        }
         return Padding(
           padding: const EdgeInsets.only(bottom: 24),
           child: Column(
@@ -179,7 +185,7 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: controller.pendingInvitations.length,
-                  itemBuilder: (context, index) {
+                  itemBuilder: (ctx, index) {
                     final invite = controller.pendingInvitations[index];
                     return _InvitationCard(
                       invite: invite,
@@ -195,8 +201,10 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
     );
   }
 
-  Widget _buildRecentActivity(DevInvitationsController invitesController) {
-    // ✅ إصلاح: استخدام الـ getter من الـ Controller بدل Filter في الـ View
+  Widget _buildRecentActivity(
+    BuildContext context,
+    DevInvitationsController invitesController,
+  ) {
     final activeProjects = invitesController.acceptedInvitations;
     if (activeProjects.isEmpty) return const SizedBox.shrink();
     final latest = activeProjects.first;
@@ -210,14 +218,14 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
             Text(
               'RESUME WORK',
               style: AppTheme.bodySmall.copyWith(
-                color: AppTheme.textMuted,
+                color: context.colors.textMuted,
                 letterSpacing: 1.5,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const Icon(
+            Icon(
               Icons.keyboard_arrow_right_rounded,
-              color: AppTheme.textMuted,
+              color: context.colors.textMuted,
               size: 16,
             ),
           ],
@@ -230,8 +238,9 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
             final project = await invitesController.fetchProject(
               latest.projectId,
             );
-            if (project != null)
+            if (project != null) {
               Get.toNamed('/project-details', arguments: project);
+            }
           },
           child: Row(
             children: [
@@ -254,7 +263,10 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
                   children: [
                     Text(
                       latest.projectTitle,
-                      style: AppTheme.titleLarge.copyWith(fontSize: 16),
+                      style: AppTheme.titleLarge.copyWith(
+                        fontSize: 16,
+                        color: context.colors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -267,10 +279,10 @@ class DeveloperDashboardView extends GetView<DeveloperController> {
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 12,
-                color: Colors.white24,
+                color: context.colors.textMuted.withValues(alpha: 0.5),
               ),
             ],
           ),
@@ -304,9 +316,13 @@ class _InvitationCard extends StatelessWidget {
                   backgroundImage: invite.senderPhotoUrl != null
                       ? NetworkImage(invite.senderPhotoUrl!)
                       : null,
-                  backgroundColor: AppTheme.surfaceLight,
+                  backgroundColor: context.colors.surfaceLight,
                   child: invite.senderPhotoUrl == null
-                      ? const Icon(Icons.person, size: 14)
+                      ? Icon(
+                          Icons.person,
+                          size: 14,
+                          color: context.colors.textSecondary,
+                        )
                       : null,
                 ),
                 const SizedBox(width: 8),
@@ -314,7 +330,7 @@ class _InvitationCard extends StatelessWidget {
                   child: Text(
                     invite.senderName,
                     style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.textSecondary,
+                      color: context.colors.textSecondary,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
@@ -326,7 +342,10 @@ class _InvitationCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               invite.projectTitle,
-              style: AppTheme.titleLarge.copyWith(fontSize: 14),
+              style: AppTheme.titleLarge.copyWith(
+                fontSize: 14,
+                color: context.colors.textPrimary,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

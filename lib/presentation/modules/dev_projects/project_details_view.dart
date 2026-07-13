@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/project_model.dart';
-import '../../../../data/models/invitation_model.dart'; // ✅ for DevWorkStatus
+import '../../../../data/models/invitation_model.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/skill_chip.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/themed_background.dart';
 import 'project_details_controller.dart';
 
 class ProjectDetailsView extends GetView<ProjectDetailsController> {
@@ -18,80 +20,77 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
     Get.put(ProjectDetailsController());
 
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: AppTheme.backgroundGradient,
-            ),
-          ),
-          Obx(() {
-            if (controller.isLoading.value) {
-              return const Center(
-                child: CircularProgressIndicator(color: AppTheme.primary),
-              );
-            }
+      body: ThemedBackground(
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            );
+          }
 
-            final project = controller.project.value;
-            if (project == null) {
-              return const Center(child: Text('Project not found'));
-            }
+          final project = controller.project.value;
+          if (project == null) {
+            return Center(
+              child: Text(
+                'Project not found',
+                style: TextStyle(color: context.colors.textPrimary),
+              ),
+            );
+          }
 
-            return CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                _buildAppBar(project),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildMainInfo(project),
-                        const SizedBox(height: 24),
-
-                        if (controller.myInvitation.value != null) ...[
-                          _buildWorkspace(project),
-                          const SizedBox(height: 32),
-                        ],
-
-                        if (controller.allProjectMembers.isNotEmpty) ...[
-                          _buildSectionTitle('Team Colleagues'),
-                          const SizedBox(height: 12),
-                          _buildColleaguesList(),
+          return Stack(
+            children: [
+              CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildAppBar(context, project),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildMainInfo(context, project),
                           const SizedBox(height: 24),
-                        ],
-
-                        if (project.internalNotes.isNotEmpty) ...[
-                          _buildSectionTitle('Manager Directives'),
+                          if (controller.myInvitation.value != null) ...[
+                            _buildWorkspace(context, project),
+                            const SizedBox(height: 32),
+                          ],
+                          if (controller.allProjectMembers.isNotEmpty) ...[
+                            _buildSectionTitle(context, 'Team Colleagues'),
+                            const SizedBox(height: 12),
+                            _buildColleaguesList(context),
+                            const SizedBox(height: 24),
+                          ],
+                          if (project.internalNotes.isNotEmpty) ...[
+                            _buildSectionTitle(context, 'Manager Directives'),
+                            const SizedBox(height: 12),
+                            _buildManagerNotes(context, project.internalNotes),
+                            const SizedBox(height: 32),
+                          ],
+                          _buildSectionTitle(context, 'Project Description'),
                           const SizedBox(height: 12),
-                          _buildManagerNotes(project.internalNotes),
+                          _buildDescription(context, project.description),
                           const SizedBox(height: 32),
+                          _buildSectionTitle(context, 'Technical Stack'),
+                          const SizedBox(height: 16),
+                          _buildTechStack(project.techStack),
+                          const SizedBox(height: 120),
                         ],
-
-                        _buildSectionTitle('Project Description'),
-                        const SizedBox(height: 12),
-                        _buildDescription(project.description),
-                        const SizedBox(height: 32),
-
-                        _buildSectionTitle('Technical Stack'),
-                        const SizedBox(height: 16),
-                        _buildTechStack(project.techStack),
-                        const SizedBox(height: 120),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            );
-          }),
-          _buildFloatingAction(),
-        ],
+                ],
+              ),
+              _buildFloatingAction(),
+            ],
+          );
+        }),
       ),
     );
   }
 
-  SliverAppBar _buildAppBar(ProjectModel project) {
+  SliverAppBar _buildAppBar(BuildContext context, ProjectModel project) {
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
@@ -100,12 +99,15 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           project.title,
-          style: AppTheme.titleLarge.copyWith(fontSize: 18),
+          style: AppTheme.titleLarge.copyWith(
+            fontSize: 18,
+            color: context.colors.textPrimary,
+          ),
         ),
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Container(color: AppTheme.surface.withValues(alpha: 0.8)),
+            Container(color: context.colors.surface.withValues(alpha: 0.8)),
             Center(
               child: Icon(
                 project.status == 'completed'
@@ -113,8 +115,8 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                     : Icons.code_rounded,
                 size: 80,
                 color: project.status == 'completed'
-                    ? AppTheme.success.withValues(alpha: 0.1)
-                    : Colors.white10,
+                    ? AppTheme.success.withValues(alpha: 0.15)
+                    : context.colors.textMuted.withValues(alpha: 0.15),
               ),
             ),
           ],
@@ -123,7 +125,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
     );
   }
 
-  Widget _buildMainInfo(ProjectModel project) {
+  Widget _buildMainInfo(BuildContext context, ProjectModel project) {
     return GlassCard(
       child: Row(
         children: [
@@ -140,13 +142,16 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                 Text(
                   'OWNER',
                   style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.textMuted,
+                    color: context.colors.textMuted,
                     letterSpacing: 1.2,
                   ),
                 ),
                 Text(
                   project.ownerName,
-                  style: AppTheme.titleLarge.copyWith(fontSize: 16),
+                  style: AppTheme.titleLarge.copyWith(
+                    fontSize: 16,
+                    color: context.colors.textPrimary,
+                  ),
                 ),
               ],
             ),
@@ -157,14 +162,14 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
     ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1);
   }
 
-  Widget _buildWorkspace(ProjectModel project) {
+  Widget _buildWorkspace(BuildContext context, ProjectModel project) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSectionTitle('Project Workspace'),
+            _buildSectionTitle(context, 'Project Workspace'),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
@@ -187,10 +192,10 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
           child: Column(
             children: [
               _buildStatusStep(
+                context: context,
                 title: 'Development Phase',
                 subtitle: 'Active coding and implementation.',
                 icon: Icons.biotech_rounded,
-                // ✅ FIX: compare with DevWorkStatus enum
                 isActive:
                     controller.myInvitation.value?.devWorkStatus ==
                     DevWorkStatus.inProgress,
@@ -199,41 +204,34 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                     DevWorkStatus.finished,
                 onTap: () => controller.updateMyStatus('in_progress'),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Divider(color: Colors.white10),
-              ),
+              Divider(color: context.colors.divider),
               _buildStatusStep(
+                context: context,
                 title: 'Testing & QA',
                 subtitle: 'Stability check and performance testing.',
                 icon: Icons.bug_report_rounded,
                 isActive: false,
-                // ✅ FIX
                 isDone:
                     controller.myInvitation.value?.devWorkStatus ==
                     DevWorkStatus.finished,
                 onTap: null,
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Divider(color: Colors.white10),
-              ),
+              Divider(color: context.colors.divider),
               _buildStatusStep(
+                context: context,
                 title: 'Mark as Finished',
                 subtitle: 'Ready for handover to manager.',
                 icon: Icons.task_alt_rounded,
                 isActive: false,
-                // ✅ FIX
                 isDone:
                     controller.myInvitation.value?.devWorkStatus ==
                     DevWorkStatus.finished,
                 color: AppTheme.success,
-                onTap: () => _showFinishDialog(),
+                onTap: () => _showFinishDialog(context),
               ),
             ],
           ),
         ),
-        // ✅ FIX: use DevWorkStatus enum
         if (controller.myInvitation.value?.devWorkStatus ==
                 DevWorkStatus.finished &&
             project.status != 'ready_for_review')
@@ -265,6 +263,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
   }
 
   Widget _buildStatusStep({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required IconData icon,
@@ -280,14 +279,14 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
         decoration: BoxDecoration(
           color: (isDone || isActive)
               ? (color ?? AppTheme.secondary).withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.05),
+              : context.colors.surfaceLight.withValues(alpha: 0.5),
           shape: BoxShape.circle,
         ),
         child: Icon(
           isDone ? Icons.check_circle_rounded : icon,
           color: (isDone || isActive)
               ? (color ?? AppTheme.secondary)
-              : AppTheme.textMuted,
+              : context.colors.textMuted,
           size: 20,
         ),
       ),
@@ -295,12 +294,15 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
         title,
         style: AppTheme.titleLarge.copyWith(
           fontSize: 14,
-          color: isDone ? AppTheme.textMuted : AppTheme.textPrimary,
+          color: isDone ? context.colors.textMuted : context.colors.textPrimary,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: AppTheme.bodySmall.copyWith(fontSize: 10),
+        style: AppTheme.bodySmall.copyWith(
+          fontSize: 10,
+          color: context.colors.textSecondary,
+        ),
       ),
       trailing: isDone
           ? const Icon(
@@ -309,12 +311,16 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
               size: 18,
             )
           : (onTap != null
-                ? const Icon(Icons.chevron_right_rounded, size: 18)
+                ? Icon(
+                    Icons.chevron_right_rounded,
+                    size: 18,
+                    color: context.colors.textMuted,
+                  )
                 : null),
     );
   }
 
-  Widget _buildColleaguesList() {
+  Widget _buildColleaguesList(BuildContext context) {
     return SizedBox(
       height: 80,
       child: Obx(
@@ -332,18 +338,21 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                 children: [
                   CircleAvatar(
                     radius: 24,
-                    backgroundColor: AppTheme.surfaceLight,
+                    backgroundColor: context.colors.surfaceLight,
                     backgroundImage: photoUrl != null
                         ? NetworkImage(photoUrl)
                         : null,
                     child: photoUrl == null
-                        ? const Icon(Icons.person, color: AppTheme.textMuted)
+                        ? Icon(Icons.person, color: context.colors.textMuted)
                         : null,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     name.split(' ').first,
-                    style: AppTheme.bodySmall.copyWith(fontSize: 9),
+                    style: AppTheme.bodySmall.copyWith(
+                      fontSize: 9,
+                      color: context.colors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -354,7 +363,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
     ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.1);
   }
 
-  Widget _buildManagerNotes(String notes) {
+  Widget _buildManagerNotes(BuildContext context, String notes) {
     return GlassCard(
       borderColor: AppTheme.primary.withValues(alpha: 0.2),
       child: Column(
@@ -384,7 +393,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
             style: AppTheme.bodyMedium.copyWith(
               fontSize: 14,
               height: 1.6,
-              color: Colors.white.withValues(alpha: 0.9),
+              color: context.colors.textPrimary,
             ),
           ),
         ],
@@ -392,7 +401,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
     ).animate().fadeIn(delay: 500.ms).scale(begin: const Offset(0.95, 0.95));
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
       title,
       style: AppTheme.headlineMedium.copyWith(
@@ -402,17 +411,17 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
     );
   }
 
-  Widget _buildDescription(String description) {
+  Widget _buildDescription(BuildContext context, String description) {
     return Text(
       description,
       style: AppTheme.bodyMedium.copyWith(
         height: 1.6,
-        color: AppTheme.textSecondary,
+        color: context.colors.textSecondary,
       ),
     );
   }
 
-  Widget _buildTechStack(List<String> skills) {
+  Widget _buildTechStack(List skills) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -434,25 +443,25 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
     );
   }
 
-  void _showFinishDialog() {
+  void _showFinishDialog(BuildContext context) {
     Get.dialog(
       AlertDialog(
-        backgroundColor: const Color(0xFF1A1F3A),
+        backgroundColor: context.colors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
+        title: Text(
           'Confirm Completion',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.textPrimary),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you have finished your tasks? This will notify the manager once all team members are ready.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.colors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text(
+            child: Text(
               'CANCEL',
-              style: TextStyle(color: AppTheme.textMuted),
+              style: TextStyle(color: context.colors.textMuted),
             ),
           ),
           ElevatedButton(
